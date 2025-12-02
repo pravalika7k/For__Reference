@@ -639,4 +639,10 @@ Read:
 
 https://shadabahmedansari06.medium.com/insecure-storage-shared-preference-3bde5995f459
 
+https://shadabahmedansari06.medium.com/mobile-pen-testing-58da0a7eda85
+
+https://shadabahmedansari06.medium.com/root-detection-bypass-using-frida-tools-b7925924cd87
+
+
+
 
